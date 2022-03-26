@@ -1,3 +1,4 @@
+pub mod growth;
 pub mod item;
 pub mod pokemon;
 pub mod position;

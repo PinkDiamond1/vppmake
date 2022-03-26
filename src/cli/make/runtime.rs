@@ -3,7 +3,8 @@ use serde::Deserialize;
 
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Input {
-    pub spent_points: u32,
+    pub post_count: u32,
+    pub points_offset: i32,
     pub stables: Stables,
     pub items: Items,
 }
@@ -16,11 +17,9 @@ pub struct Analytics {
 
 impl Analytics {
     pub fn new(input: &Input) -> Self {
-        let current_points = input
-            .stables
-            .total_points()
-            .checked_sub(input.spent_points)
-            .expect("Spent points is above budget!");
+        let current_points = (input.stables.total_points() as i32)
+            .checked_add(input.points_offset)
+            .expect("Spent points is above budget!") as u32;
 
         let total_pokemon = input.stables.iter().map(|s| s.total_pokemon()).sum();
 

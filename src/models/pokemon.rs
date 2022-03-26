@@ -1,4 +1,5 @@
 use super::{
+    growth::{Growth, Lv},
     position::Position,
     species::{Species, SpeciesSpriteKind},
 };
@@ -17,7 +18,7 @@ pub struct Pokemon {
 
     // VPP spec
     pub points: u32,
-    pub stage: GrowthStage,
+    pub growth: Growth,
 
     // Layout spec
     pub position: Position,
@@ -30,8 +31,15 @@ impl Pokemon {
         PokemonSprite(self)
     }
 
-    pub fn sprite_url(&self) -> String {
-        self.species.sprite_url(self.sprite_kind())
+    pub fn sprite_url(&self, post_count: u32) -> String {
+        let kind = self.sprite_kind();
+        let egg = self.growth_level(post_count).is_egg();
+
+        self.species.sprite_url(kind, egg)
+    }
+
+    pub fn growth_level(&self, post_count: u32) -> Lv {
+        self.growth.level(post_count)
     }
 
     fn sprite_kind(&self) -> SpeciesSpriteKind {
@@ -83,12 +91,4 @@ impl<'a> IntoIterator for &'a Pokemons {
     fn into_iter(self) -> Self::IntoIter {
         self.0.iter()
     }
-}
-
-#[derive(PartialEq, Debug, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum GrowthStage {
-    Egg,
-    Growing,
-    Grown,
 }

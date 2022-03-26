@@ -12,8 +12,9 @@ const SPRITE_URL_BASE: &str =
     "https://raw.githubusercontent.com/tipsypastels/porygon2-pokemon-data/master/output/sprites";
 
 impl Species {
-    pub(super) fn sprite_url(&self, sprite: SpeciesSpriteKind) -> String {
-        format!("{}/{}/{}.png", SPRITE_URL_BASE, sprite.dir(), self.slug)
+    pub(super) fn sprite_url(&self, sprite: SpeciesSpriteKind, egg: bool) -> String {
+        let slug = if egg { "egg".to_string() } else { self.slug };
+        format!("{}/{}/{}.png", SPRITE_URL_BASE, sprite.dir(), slug)
     }
 }
 
