@@ -1,27 +1,25 @@
 use crate::bbcode::write_tag;
 use serde::Deserialize;
-use std::fmt;
+use smartstring::alias::String;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Type {
     name: String,
-    color: Color,
     icon: String,
+    color: Color,
 }
 
-impl fmt::Display for Type {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Type {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write_tag!(f, "span", self.color)?;
 
         write_tag!(f, "icon")?;
         write!(f, "{}", self.icon)?;
         write_tag!(f, end "icon")?;
 
-        write!(f, " {}", self.name)?;
-
-        write_tag!(f, end "span")?;
-
-        Ok(())
+        write!(f, "{}", self.name)?;
+        write_tag!(f, end "span")
     }
 }
 
@@ -32,8 +30,8 @@ pub enum Types {
     Double(Type, Type),
 }
 
-impl fmt::Display for Types {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Types {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             Types::Single(ty) => write!(f, "{}", ty),
             Types::Double(ty1, ty2) => write!(f, "{} {}", ty1, ty2),
@@ -42,10 +40,10 @@ impl fmt::Display for Types {
 }
 
 #[derive(PartialEq, Debug, Deserialize)]
-struct Color(u32, u32, u32);
+pub struct Color(u32, u32, u32);
 
-impl fmt::Display for Color {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Color {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "color: rgb({}, {}, {});", self.0, self.1, self.2)
     }
 }

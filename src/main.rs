@@ -1,30 +1,20 @@
-use argh::FromArgs;
+use std::fs;
 
 mod bbcode;
-mod cli;
 mod models;
+mod ui;
 
-#[derive(FromArgs, PartialEq, Debug)]
-#[argh(description = "Commands for building Dakota's VPP thread.")]
-struct Cli {
-    #[argh(subcommand)]
-    command: CliCommand,
-}
+use models::root::{RawRoot, Root};
 
-#[derive(FromArgs, PartialEq, Debug)]
-#[argh(subcommand)]
-enum CliCommand {
-    MakeCss(cli::make::Opts),
-}
-
-impl CliCommand {
-    pub fn run(self) -> anyhow::Result<()> {
-        match self {
-            Self::MakeCss(opts) => cli::make::run(opts),
-        }
-    }
-}
+const PATH: &str = "vpp.yaml";
 
 fn main() -> anyhow::Result<()> {
-    argh::from_env::<Cli>().command.run()
+    let contents = fs::read_to_string(PATH)?;
+
+    let root: RawRoot = serde_yaml::from_str(&contents)?;
+    let root: Root = root.into();
+
+    dbg!(root);
+
+    Ok(())
 }

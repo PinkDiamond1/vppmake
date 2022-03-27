@@ -1,61 +1,27 @@
+use super::{level::Lv, root::Rooted};
 use serde::Deserialize;
-use std::fmt;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(PartialEq, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum Growth {
-    Manual(GrowthStage),
-    Bounded(GrowthBounds),
+    Bounds(GrowthBounds),
+    Stage(GrowthStage),
 }
 
 impl Growth {
     pub fn level(&self, post_count: u32) -> Lv {
         match self {
-            Growth::Manual(ref m) => m.level(),
-            Growth::Bounded(ref b) => b.level(post_count),
+            Growth::Bounds(ref b) => b.level(post_count),
+            Growth::Stage(ref s) => s.level(),
         }
     }
 }
 
-pub struct Lv(u32);
-
-impl Lv {
-    const MIN: u32 = 0;
-    const MAX: u32 = 100;
-
-    fn new(lv: u32) -> Self {
-        assert!(lv <= Self::MAX);
-
-        Self(lv)
-    }
-
-    fn min() -> Self {
-        Self(Self::MIN)
-    }
-
-    fn max() -> Self {
-        Self(Self::MAX)
-    }
-
-    pub fn is_egg(&self) -> bool {
-        self.0 == Self::MIN
-    }
-
-    #[allow(unused)]
-    pub fn is_max(&self) -> bool {
-        self.0 == Self::MAX
-    }
-}
-
-impl fmt::Display for Lv {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Lv. {}", self.0)
-    }
-}
-
-impl fmt::Debug for Lv {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self, f)
+impl Display for Rooted<'_, Growth> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        let Rooted(ref growth, root) = self;
+        write!(f, "{}", growth.level(root.post_count()))
     }
 }
 
@@ -71,20 +37,20 @@ impl GrowthBounds {
         assert!(post_count >= self.start);
 
         if post_count > self.grown {
-            return Lv::max();
+            return Lv::MAX;
         }
 
-        // NOTE: we're lying here - unhatched pokemon are always treated
-        // as having level zero, even though the math below would give them
-        // a low but nonzero level.
+        // We're lying here - unhatched Pokemon are always treated
+        // as having level zero, even though the math would actually
+        // give them a low but non-zero level.
         if post_count < self.hatch {
-            return Lv::min();
+            return Lv::MIN;
         }
 
         let distance = self.grown - self.start;
         let progress = post_count - self.start;
 
-        Lv::new((progress / distance) * Lv::MAX)
+        Lv::distribute(progress / distance)
     }
 }
 
@@ -99,9 +65,9 @@ pub enum GrowthStage {
 impl GrowthStage {
     fn level(&self) -> Lv {
         match *self {
-            Self::Egg => Lv::min(),
+            Self::Egg => Lv::MIN,
             Self::Growing { level } => Lv::new(level),
-            Self::Grown => Lv::max(),
+            Self::Grown => Lv::MAX,
         }
     }
 }

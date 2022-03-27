@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use crate::models::position::Position;
+
 #[derive(Default, Debug)]
 pub struct Css {
     static_rules: Option<&'static str>,
@@ -40,8 +42,32 @@ impl Css {
         }
     }
 
+    #[allow(unused)]
     pub fn set(&mut self, property: &'static str, value: impl fmt::Display) {
         self.dynamic_rules.insert(property, value.to_string());
+    }
+
+    pub fn positioned(&mut self, position: Position) {
+        macro_rules! set {
+            ($($s:ident),*) => {
+                $(self.set(stringify!($s), $s);)*
+            };
+        }
+
+        match position {
+            Position::TopLeft { top, left } => {
+                set!(top, left);
+            }
+            Position::TopRight { top, right } => {
+                set!(top, right);
+            }
+            Position::BottomLeft { bottom, left } => {
+                set!(bottom, left);
+            }
+            Position::BottomRight { bottom, right } => {
+                set!(bottom, right);
+            }
+        }
     }
 }
 
@@ -56,13 +82,5 @@ impl fmt::Display for Css {
         }
 
         Ok(())
-    }
-}
-
-impl<V: fmt::Display> Extend<(&'static str, V)> for Css {
-    fn extend<T: IntoIterator<Item = (&'static str, V)>>(&mut self, iter: T) {
-        for (k, v) in iter {
-            self.set(k, v);
-        }
     }
 }

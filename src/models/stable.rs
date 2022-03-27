@@ -1,22 +1,30 @@
-use super::pokemon::Pokemons;
+use super::{pokemon::Pokemons, root::Rooted};
+use crate::{ui::Tab, write_tag};
 use serde::Deserialize;
+use smartstring::alias::String;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Stable {
-    pub slug: String,
-    pub name: String,
-    pub name_short: String,
-    pub pokemon: Pokemons,
-    pub image: String,
+    slug: String,
+    name: String,
+    name_short: String,
+    pokemon: Pokemons,
 }
 
 impl Stable {
+    pub fn total_pokemon(&self) -> u32 {
+        self.pokemon.total()
+    }
+
     pub fn total_points(&self) -> u32 {
         self.pokemon.total_points()
     }
+}
 
-    pub fn total_pokemon(&self) -> u32 {
-        self.pokemon.count()
+impl Display for Stable {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", Tab::new(&self.slug, &self.name_short))
     }
 }
 
@@ -24,20 +32,11 @@ impl Stable {
 pub struct Stables(Vec<Stable>);
 
 impl Stables {
+    pub fn total_pokemon(&self) -> u32 {
+        self.0.iter().map(|s| s.total_pokemon()).sum()
+    }
+
     pub fn total_points(&self) -> u32 {
-        self.0.iter().map(|p| p.total_points()).sum()
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Stable> {
-        self.0.iter()
-    }
-}
-
-impl<'a> IntoIterator for &'a Stables {
-    type Item = &'a Stable;
-    type IntoIter = std::slice::Iter<'a, Stable>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+        self.0.iter().map(|s| s.total_points()).sum()
     }
 }
