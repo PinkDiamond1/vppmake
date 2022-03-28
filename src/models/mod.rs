@@ -1,11 +1,5 @@
-pub mod growth;
-pub mod item;
-pub mod level;
-pub mod menu;
-pub mod pokemon;
-pub mod position;
-pub mod root;
-pub mod species;
-pub mod sprite;
-pub mod stable;
-pub mod types;
+mod root;
+mod types;
+
+pub use root::*;
+pub use types::*;

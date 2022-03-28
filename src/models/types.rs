@@ -1,49 +1,42 @@
-use crate::bbcode::write_tag;
 use serde::Deserialize;
-use smartstring::alias::String;
-use std::fmt::{Display, Formatter, Result};
+use smol_str::SmolStr;
+use std::fmt;
 
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Type {
-    name: String,
-    icon: String,
+    name: SmolStr,
+    icon: SmolStr,
     color: Color,
 }
 
-impl Display for Type {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write_tag!(f, "span", self.color)?;
+// pub struct TypeComponent<'p>(&'p Type);
 
-        write_tag!(f, "icon")?;
-        write!(f, "{}", self.icon)?;
-        write_tag!(f, end "icon")?;
+// impl<'p> Component<'p> for TypeComponent<'p> {
+//     type Props = Type;
+//     type Body = ();
 
-        write!(f, "{}", self.name)?;
-        write_tag!(f, end "span")
-    }
-}
+//     fn new(props: &'p Self::Props) -> Self {
+//         Self(props)
+//     }
 
-#[derive(PartialEq, Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Types {
-    Single(Type),
-    Double(Type, Type),
-}
+//     fn render(&self, buf: &mut String, _: ()) {
+//         let ty = &self.0;
 
-impl Display for Types {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
-            Types::Single(ty) => write!(f, "{}", ty),
-            Types::Double(ty1, ty2) => write!(f, "{} {}", ty1, ty2),
-        }
-    }
-}
+//         bbcode!(
+//             in {{ buf }}
+
+//             span({{ &ty.color }}) {
+
+//             }
+//         )
+//     }
+// }
 
 #[derive(PartialEq, Debug, Deserialize)]
-pub struct Color(u32, u32, u32);
+pub struct Color(u8, u8, u8);
 
-impl Display for Color {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "color: rgb({}, {}, {});", self.0, self.1, self.2)
     }
 }

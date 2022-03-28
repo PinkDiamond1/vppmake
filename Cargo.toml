@@ -9,6 +9,6 @@ edition = "2021"
 anyhow = "1.0.56"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_yaml = "0.8.23"
-smartstring = { version = "1.0.1", features = ["serde"] }
+smol_str = "0.1.21"
 
 [features]
