@@ -10,6 +10,8 @@ mod render;
 
 // const PATH: &str = "vpp.yaml";
 
+use render::{Body, Buf};
+
 fn main() -> anyhow::Result<()> {
     // let contents = fs::read_to_string(PATH)?;
 
@@ -32,14 +34,22 @@ fn main() -> anyhow::Result<()> {
     bbcode! {
         in {{ buf }};
 
-        for n in {{ [1, 2, 3] }} {
-            div {
-                {{ n }};
-            }
+        do my_component "Outer" {
+            span "Inner!";
         }
     };
 
     println!("{}", buf);
 
     Ok(())
+}
+
+fn my_component<B: Body>(buf: Buf, name: &'static str, body: B) {
+    bbcode! {
+        in {{ buf }};
+
+        div {{ name }} {
+            yield {{ body }};
+        }
+    }
 }

@@ -54,10 +54,24 @@ macro_rules! parse_bbcode {
         $crate::parse_bbcode!(@write $buf, concat!("[/", stringify!($tag), "]"));
     };
 
+    (@defer $buf:ident, $($body:tt)*) => {
+        |buf: &mut String| {
+            buf.reserve(stringify!($($body)*).len());
+            $crate::parse_bbcode!(buf, $($body)*);
+        }
+    };
+
     /* ---------------------------------- Empty --------------------------------- */
 
     ($buf:ident, ) => {
 
+    };
+
+    /* ----------------------------- Yield Statement ---------------------------- */
+
+    ($buf:ident, yield {{$body:expr}}; $($next:tt)*) => {
+        $body($buf);
+        $crate::parse_bbcode!($buf, $($next)*);
     };
 
     /* ------------------------------ For Statement ----------------------------- */
@@ -90,6 +104,12 @@ macro_rules! parse_bbcode {
         }
 
         $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* ------------------------- Error: Unmatched Yield ------------------------- */
+
+    ($buf:ident, yield $($_:tt)*) => {
+        compile_error!("Unexpected keyword: `yield`!");
     };
 
     /* -------------------------- Error: Unmatched For -------------------------- */
@@ -183,6 +203,48 @@ macro_rules! parse_bbcode {
         $crate::parse_bbcode!(@openend $buf);
         $crate::parse_bbcode!($buf, $($body)*);
         $crate::parse_bbcode!(@close $buf, $tag);
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* ---------------------- Component with Escaped Value ---------------------- */
+
+    ($buf:ident, do $cmp:ident {{$val:expr}}; $($next:tt)*) => {
+        $cmp(&mut $buf, $val);
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* -------------------------- Component with Value -------------------------- */
+
+    ($buf:ident, do $cmp:ident $val:literal; $($next:tt)*) => {
+        $cmp(&mut $buf, $val);
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* ----------------------------- Empty Component ---------------------------- */
+
+    ($buf:ident, do $cmp:ident; $($next:tt)*) => {
+        $cmp(&mut $buf);
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* ---------------- Component with Escaped Value and Children --------------- */
+
+    ($buf:ident, do $cmp:ident {{$val:expr}} {$($body:tt)*} $($next:tt)*) => {
+        $cmp(&mut $buf, $val, $crate::parse_bbcode!(@defer $buf, $($body)*));
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* -------------------- Component with Value and Children ------------------- */
+
+    ($buf:ident, do $cmp:ident $val:literal {$($body:tt)*} $($next:tt)*) => {
+        $cmp(&mut $buf, $val, $crate::parse_bbcode!(@defer $buf, $($body)*));
+        $crate::parse_bbcode!($buf, $($next)*);
+    };
+
+    /* ------------------------- Component with Children ------------------------ */
+
+    ($buf:ident, do $cmp:ident {$($body:tt)*} $($next:tt)*) => {
+        $cmp(&mut $buf, $crate::parse_bbcode!(@defer $buf, $($body)*));
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
