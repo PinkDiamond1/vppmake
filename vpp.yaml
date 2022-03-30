@@ -257,3 +257,17 @@ stables:
 items:
   - name: Alcremie Berry
     quantity: 2
+
+# ---------------------------------------------------------------------------- #
+#                                    Ribbons                                   #
+# ---------------------------------------------------------------------------- #
+
+ribbons:
+  # Have at least one VPP.
+  - image: "https://www.serebii.net/games/ribbons/bestfriendsribbon.png"
+  
+  # Have a shiny VPP.
+  - image: "https://www.serebii.net/games/ribbons/beautymasterribbon.png"
+
+  # Have five VPPs.
+  - image: "https://www.serebii.net/games/ribbons/expertbattlerribbon.png"
