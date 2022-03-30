@@ -1,28 +1,19 @@
-// use std::fs;
+use models::{render_root, RawRoot, Root};
+use std::fs;
 
-// mod bbcode;
-// mod models;
-// mod ui;
 mod models;
 mod render;
 
-// use models::root::{RawRoot, Root};
+const PATH: &str = "vpp.yaml";
 
-// const PATH: &str = "vpp.yaml";
+fn main() {
+    let contents = fs::read_to_string(PATH).unwrap();
 
-fn main() -> anyhow::Result<()> {
-    css! {
-        x {
-            a: "1";
-            b: {{ "5px" }};
-        }
+    let root: RawRoot = serde_yaml::from_str(&contents).unwrap();
+    let root: Root = root.into();
 
-        y {
+    let mut buf = String::new();
 
-        }
-    };
-
-    dbg!((x, y));
-
-    Ok(())
+    render_root(&mut buf, &root);
+    println!("{}", buf);
 }

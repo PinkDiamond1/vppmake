@@ -20,12 +20,14 @@ pub fn render_type(buf: Buf, ty: &Type) {
                 {{ ty.icon }};
             }
 
+            " ";
             {{ ty.name }};
         }
     }
 }
 
 #[derive(PartialEq, Debug, Deserialize)]
+#[serde(untagged)]
 pub enum Types {
     Single(Type),
     Double(Type, Type),
@@ -40,9 +42,9 @@ pub fn render_types(buf: Buf, types: &Types) {
             bbcode! {
                 in {{ buf }};
 
-                do render_type {{ ty1 }};
+                render_type({{ ty1 }});
                 " ";
-                do render_type {{ ty2 }};
+                render_type({{ ty2 }});
             }
         }
     };

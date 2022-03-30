@@ -47,6 +47,17 @@ macro_rules! css {
         compile_error!("Unexpected keyword: `else`!");
     };
 
+    /* ---------------------------- Escaped Statement --------------------------- */
+
+    (@rule $buf:ident, {{$expr:expr}}; $($next:tt)*) => {
+        {
+            use std::fmt::Write;
+            write!($buf, "{}", $expr).unwrap();
+        }
+
+        $crate::css!(@rule $buf, $($next)*);
+    };
+
     /* ------------------------------ Literal Rule ------------------------------ */
 
     (@rule $buf:ident, $prop:ident: $val:literal; $($next:tt)*) => {

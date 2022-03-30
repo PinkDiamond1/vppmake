@@ -64,6 +64,18 @@ macro_rules! parse_bbcode {
         }
     };
 
+    /* ------------------ Utility: Literal Value for Component ------------------ */
+
+    (@cmpval $val:literal) => {
+        $val
+    };
+
+    /* ------------------ Utility: Escaped Value for Component ------------------ */
+
+    (@cmpval {{$val:expr}}) => {
+        $val
+    };
+
     /* ---------------------------------- Empty --------------------------------- */
 
     ($buf:ident, ) => {
@@ -134,7 +146,6 @@ macro_rules! parse_bbcode {
     };
 
     /* ---------------------------- Literal Statement --------------------------- */
-
 
     ($buf:ident, $lit:literal; $($next:tt)*) => {
         $crate::parse_bbcode!(@write $buf, $lit);
@@ -209,45 +220,35 @@ macro_rules! parse_bbcode {
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
-    /* ---------------------- Component with Escaped Value ---------------------- */
+    /* -------------------------- Component with Values ------------------------- */
 
-    ($buf:ident, do $cmp:ident {{$val:expr}}; $($next:tt)*) => {
-        $cmp($buf, $val);
-        $crate::parse_bbcode!($buf, $($next)*);
-    };
-
-    /* -------------------------- Component with Value -------------------------- */
-
-    ($buf:ident, do $cmp:ident $val:literal; $($next:tt)*) => {
-        $cmp($buf, $val);
+    ($buf:ident, $cmp:ident($($vals:tt),+); $($next:tt)*) => {
+        $cmp($buf, $($crate::parse_bbcode!(@cmpval $vals)),*);
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
     /* ----------------------------- Empty Component ---------------------------- */
 
-    ($buf:ident, do $cmp:ident; $($next:tt)*) => {
+    ($buf:ident, $cmp:ident(); $($next:tt)*) => {
         $cmp($buf);
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
-    /* ---------------- Component with Escaped Value and Children --------------- */
+    /* ------------------- Component with Values and Children ------------------- */
 
-    ($buf:ident, do $cmp:ident {{$val:expr}} {$($body:tt)*} $($next:tt)*) => {
-        $cmp(&mut $buf, $val, $crate::parse_bbcode!(@defer $buf, $($body)*));
-        $crate::parse_bbcode!($buf, $($next)*);
-    };
-
-    /* -------------------- Component with Value and Children ------------------- */
-
-    ($buf:ident, do $cmp:ident $val:literal {$($body:tt)*} $($next:tt)*) => {
-        $cmp(&mut $buf, $val, $crate::parse_bbcode!(@defer $buf, $($body)*));
+    ($buf:ident, $cmp:ident($($vals:tt),+) {$($body:tt)*} $($next:tt)*) => {
+        $cmp(
+            $buf,
+            $($crate::parse_bbcode!(@cmpval $vals)),*,
+            $crate::parse_bbcode!(@defer $buf, $($body)*)
+        );
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
     /* ------------------------- Component with Children ------------------------ */
 
-    ($buf:ident, do $cmp:ident {$($body:tt)*} $($next:tt)*) => {
-        $cmp(&mut $buf, $crate::parse_bbcode!(@defer $buf, $($body)*));
+    ($buf:ident, $cmp:ident() {$($body:tt)*} $($next:tt)*) => {
+        $cmp($buf, $crate::parse_bbcode!(@defer $buf, $($body)*));
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
