@@ -2,6 +2,8 @@ use serde::Deserialize;
 use smol_str::SmolStr;
 use std::fmt;
 
+use crate::{bbcode, render::Buf};
+
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Type {
     name: SmolStr,
@@ -9,28 +11,42 @@ pub struct Type {
     color: Color,
 }
 
-// pub struct TypeComponent<'p>(&'p Type);
+pub fn render_type(buf: Buf, ty: &Type) {
+    bbcode! {
+        in {{ buf }};
 
-// impl<'p> Component<'p> for TypeComponent<'p> {
-//     type Props = Type;
-//     type Body = ();
+        span {{ ty.color }} {
+            icon {
+                {{ ty.icon }};
+            }
 
-//     fn new(props: &'p Self::Props) -> Self {
-//         Self(props)
-//     }
+            {{ ty.name }};
+        }
+    }
+}
 
-//     fn render(&self, buf: &mut String, _: ()) {
-//         let ty = &self.0;
+#[derive(PartialEq, Debug, Deserialize)]
+pub enum Types {
+    Single(Type),
+    Double(Type, Type),
+}
 
-//         bbcode!(
-//             in {{ buf }}
+pub fn render_types(buf: Buf, types: &Types) {
+    match types {
+        Types::Single(ty) => {
+            render_type(buf, ty);
+        }
+        Types::Double(ty1, ty2) => {
+            bbcode! {
+                in {{ buf }};
 
-//             span({{ &ty.color }}) {
-
-//             }
-//         )
-//     }
-// }
+                do render_type {{ ty1 }};
+                " ";
+                do render_type {{ ty2 }};
+            }
+        }
+    };
+}
 
 #[derive(PartialEq, Debug, Deserialize)]
 pub struct Color(u8, u8, u8);

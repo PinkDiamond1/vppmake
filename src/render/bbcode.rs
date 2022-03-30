@@ -8,6 +8,7 @@ macro_rules! bbcode {
 
 #[macro_export]
 macro_rules! parse_bbcode {
+
     /* ----------------------------- Utility: Write ----------------------------- */
 
     (@write $buf:ident, $text:expr) => {{
@@ -53,6 +54,8 @@ macro_rules! parse_bbcode {
     (@close $buf:ident, $tag:ident) => {
         $crate::parse_bbcode!(@write $buf, concat!("[/", stringify!($tag), "]"));
     };
+
+    /* ------------------------- Utility: Deferred Body ------------------------- */
 
     (@defer $buf:ident, $($body:tt)*) => {
         |buf: &mut String| {
@@ -209,21 +212,21 @@ macro_rules! parse_bbcode {
     /* ---------------------- Component with Escaped Value ---------------------- */
 
     ($buf:ident, do $cmp:ident {{$val:expr}}; $($next:tt)*) => {
-        $cmp(&mut $buf, $val);
+        $cmp($buf, $val);
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
     /* -------------------------- Component with Value -------------------------- */
 
     ($buf:ident, do $cmp:ident $val:literal; $($next:tt)*) => {
-        $cmp(&mut $buf, $val);
+        $cmp($buf, $val);
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
     /* ----------------------------- Empty Component ---------------------------- */
 
     ($buf:ident, do $cmp:ident; $($next:tt)*) => {
-        $cmp(&mut $buf);
+        $cmp($buf);
         $crate::parse_bbcode!($buf, $($next)*);
     };
 
